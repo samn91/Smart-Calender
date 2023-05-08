@@ -6,6 +6,24 @@
     android:layout_height="match_parent"
     tools:context=".MainFragment">
 
+
+<!--    <androidx.camera.view.PreviewView-->
+<!--        android:id="@+id/pv_main"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent" />-->
+
+
+    <FrameLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:id="@+id/container">
+        <androidx.camera.view.PreviewView
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            app:implementationMode="compatible"
+            android:id="@+id/pv_main" />
+    </FrameLayout>
+
     <TextView
         android:id="@+id/textview_first"
         android:layout_width="wrap_content"
