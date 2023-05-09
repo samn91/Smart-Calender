@@ -58,7 +58,8 @@ class MainFragment : Fragment() {
         }
         val permissions = arrayOf(
             android.Manifest.permission.CAMERA,
-            android.Manifest.permission.RECORD_AUDIO
+//            android.Manifest.permission.RECORD_AUDIO,
+            android.Manifest.permission.WRITE_CALENDAR
         )
 
         val askForPermission = permissions.any {
@@ -111,7 +112,9 @@ class MainFragment : Fragment() {
                 .subscribe({
                     Log.d("ChatResponse", it.toString())
                     lastImage = System.currentTimeMillis()
-                    binding.textviewFirst.text = it.choices.firstOrNull()?.message?.getCalenderEvent()?.toString()
+                    val calenderEvent = it.choices.firstOrNull()?.message?.getCalenderEvent() ?: return@subscribe
+                    binding.textviewFirst.text = calenderEvent.toString()
+                    CalenderHelper.addEvent(requireActivity(), calenderEvent )
                 }, {
                     context ?: return@subscribe
                     Toast.makeText(context, "Failed to get text: ${it.message}", Toast.LENGTH_SHORT).show()

@@ -39,7 +39,7 @@ data class RequestBody(
             val messages = arrayListOf(
                 Message(
                     "assistant",
-                    "fill the following: title, note, summery, and date format: yyyyMMdd_HH:mm in a json format"
+                    "fill the following: title, note, summery, location, and date format: yyyyMMdd_HH:mm in a json format"
                 ), Message(
                     "user", message
                 )
@@ -76,5 +76,5 @@ data class ChatCompletion(
 }
 
 data class CalenderEvent(
-    val title: String, val note: String, val date: String
+    val title: String, val note: String, val location: String, val date: String
 )
