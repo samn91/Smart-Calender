@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,7 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.SingleSubject
 
 class MainFragment : Fragment() {
 
@@ -99,16 +101,21 @@ class MainFragment : Fragment() {
             }
 
             disposable = processText(imageProxy)
-                .observeOn(AndroidSchedulers.mainThread())
                 .doFinally {
                     imageProxy.close()
                     imageAnalysis.clearAnalyzer()
-                }.subscribe({
+                    cameraProvider.unbindAll()
+                }
+                .flatMap { chatGptApi.chat(body = RequestBody.createRequestBody(it)) }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    Log.d("ChatResponse", it.toString())
                     lastImage = System.currentTimeMillis()
-                    binding.textviewFirst.text = it
+                    binding.textviewFirst.text = it.choices.firstOrNull()?.message?.getCalenderEvent()?.toString()
                 }, {
                     context ?: return@subscribe
-                    Toast.makeText(context, "Failed to get text: $it", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Failed to get text: ${it.message}", Toast.LENGTH_SHORT).show()
+                    Log.e("ChatResponse","error", it)
                 })
         }
         val preview: Preview = Preview.Builder().build()
@@ -116,8 +123,7 @@ class MainFragment : Fragment() {
         val cameraSelector: CameraSelector =
             CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
 
-        // uncomment to add preview
-        //preview.setSurfaceProvider(binding.pvMain.surfaceProvider)
+        preview.setSurfaceProvider(binding.pvMain.surfaceProvider)
 
         var camera = cameraProvider.bindToLifecycle(
             this as LifecycleOwner, cameraSelector, imageAnalysis, preview
@@ -125,16 +131,16 @@ class MainFragment : Fragment() {
     }
 
     @SuppressLint("UnsafeOptInUsageError")
-    private fun processText(imageProxy: ImageProxy): PublishSubject<String> {
+    private fun processText(imageProxy: ImageProxy): SingleSubject<String> {
         val mediaImage = imageProxy.image
         val image =
             InputImage.fromMediaImage(mediaImage!!, imageProxy.imageInfo.rotationDegrees)
 
-        val publishSubject = PublishSubject.create<String>()
+        val publishSubject = SingleSubject.create<String>()
 
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
             .process(image).addOnSuccessListener {
-                publishSubject.onNext(it.text)
+                publishSubject.onSuccess(it.text)
             }.addOnFailureListener {
                 publishSubject.onError(it)
             }
