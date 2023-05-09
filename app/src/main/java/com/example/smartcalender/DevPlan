@@ -1,0 +1,6 @@
+Create a CameraManager to handle capture image and preview
+Create a TextRecognition to handle image to text
+Refactor floating button to handle the following feature
+Add feature to get event from screenshot
+feature to get event from text
+Look into reducing traffic with chatGPT
