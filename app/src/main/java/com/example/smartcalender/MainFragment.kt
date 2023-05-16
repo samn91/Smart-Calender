@@ -92,6 +92,7 @@ class MainFragment : Fragment() {
 
     private fun captureEvent(cameraProvider: ProcessCameraProvider?) {
         cameraProvider ?: return
+        binding.buttonFirst.isEnabled = false
         disposable?.dispose()
         disposable = Single.just(true)//to make the retry trigger CameraManager
             .flatMap {
@@ -112,7 +113,10 @@ class MainFragment : Fragment() {
             }.flatMap { chatGptApi.chat(body = RequestBody.createRequestBody(it)) }
             .map { it.choices.first().message }
             .doOnSuccess { Log.d("ChatResponse", "ChatGPT response= $it") }
-            .map { it.getCalenderEvent()!! }.observeOn(AndroidSchedulers.mainThread()).subscribe({
+            .map { it.getCalenderEvent()!! }
+            .observeOn(AndroidSchedulers.mainThread())
+            .doFinally { binding.buttonFirst.isEnabled = true }
+            .subscribe({
                 lastImage = System.currentTimeMillis()
                 binding.textviewFirst.text = it.toString()
                 CalenderHelper.addEvent(requireActivity(), it)

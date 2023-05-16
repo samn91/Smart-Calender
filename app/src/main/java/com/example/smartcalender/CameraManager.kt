@@ -53,7 +53,7 @@ object CameraManager {
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(activity)) { imageProxy ->
             publishSubject.onSuccess(imageProxy)
             imageAnalysis.clearAnalyzer()
-            //cameraProvider.unbind(imageAnalysis)//review if this needed
+            cameraProvider.unbind(imageAnalysis)//review if this needed
         }
 
         val cameraSelector: CameraSelector =
