@@ -23,11 +23,14 @@ import io.reactivex.subjects.SingleSubject
 
 class MainFragment : Fragment() {
 
-    private var _binding: FragmentMainBinding? = null
-
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private val permissions = arrayOf(
+        android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_CALENDAR
+    )
+
+    private var _binding: FragmentMainBinding? = null
     private var lastImage = System.currentTimeMillis()
     private var disposable: Disposable? = null
     private var cameraProvider: ProcessCameraProvider? = null
@@ -44,31 +47,46 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonFirst.setOnClickListener {
-            cameraProvider?.unbindAll()
-            captureEvent(cameraProvider)
-        }
-        val permissions = arrayOf(
-            android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_CALENDAR
-        )
+        binding.buttonFirst.isEnabled = false
 
         val askForPermission = permissions.any {
             ActivityCompat.checkSelfPermission(
                 requireActivity(), it
-            ) != PackageManager.PERMISSION_DENIED
+            ) != PackageManager.PERMISSION_GRANTED
         }
 
         if (askForPermission) {
-            ActivityCompat.requestPermissions(
-                requireActivity(), permissions, 1241234
-            )
-            // return
+            requestPermissions(permissions, 12434)
+            return
         }
 
+        requestCameraInit()
+
+        binding.buttonFirst.setOnClickListener {
+            captureEvent(cameraProvider)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        if (permissions.any {
+                ActivityCompat.checkSelfPermission(
+                    requireActivity(), it
+                ) != PackageManager.PERMISSION_GRANTED
+            }) {
+            Toast.makeText(requireContext(), "Missing permissions", Toast.LENGTH_SHORT).show()
+            return
+        }
+        requestCameraInit()
+    }
+
+    private fun requestCameraInit() {
         CameraManager.initCamera(requireContext()).observeOn(AndroidSchedulers.mainThread())
             .subscribe { it, error ->
                 cameraProvider = it
                 CameraManager.runCamera(it, viewLifecycleOwner, binding.pvMain.surfaceProvider)
+                binding.buttonFirst.isEnabled = true
             }
     }
 
