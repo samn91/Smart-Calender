@@ -3,20 +3,27 @@ package com.example.smartcalender
 import com.google.gson.Gson
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
+import java.util.concurrent.TimeUnit
 
 val gson = Gson()
 
+val client: OkHttpClient.Builder =
+    OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
 
-val chatGptApi = Retrofit.Builder().baseUrl("https://api.openai.com/v1/")
-    .addConverterFactory(GsonConverterFactory.create())
-    .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io())).build()
-    .create(ChatGpt::class.java)
+
+val chatGptApi: ChatGpt =
+    Retrofit.Builder().baseUrl("https://api.openai.com/v1/").client(client.build())
+        .addConverterFactory(GsonConverterFactory.create())
+        .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+        .build().create(ChatGpt::class.java)
 
 
 interface ChatGpt {
@@ -39,7 +46,7 @@ data class RequestBody(
             val messages = arrayListOf(
                 Message(
                     "assistant",
-                    "fill the following: title, note, summery, location, and date format: yyyyMMdd_HH:mm in a json format"
+                    "fill the following: {title, note, summery, location, and date format: yyyyMMdd_HH:mm} in a json format"
                 ), Message(
                     "user", message
                 )
