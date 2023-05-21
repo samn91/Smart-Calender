@@ -1,6 +1,7 @@
-Create a TextRecognition to handle image to text
+Add small backend to the ChatGpt key isn't exposed
+Add a registration functionality
 Measuring traffic with chatGPT "token"
-Refactor floating button to handle the following feature
-Add feature to get event from screenshot
-feature to get event from text
 Look into reducing traffic with chatGPT
+Add floating button to handle the following feature
+    Add feature to get event from screenshot
+    Add feature to get event from Text
